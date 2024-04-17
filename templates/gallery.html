@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Gallery</title>
+</head>
+<body>
+    <h1>Image Gallery</h1>
+    <div>
+{% for image in images %}
+    <img src="{{ image }}" alt="Uploaded Image"
+         style="width:200px; cursor: pointer;" 
+         onclick="openEditor('{{ image }}')">
+{% endfor %}
+
+    </div>
+
+    <script>
+        function openEditor(imageName) {
+            var imageUrl = imageName;
+            var editorUrl = '/editor?img=' + encodeURIComponent(imageUrl);
+            window.open(editorUrl, 'Image Editor', 'width=850,height=650');
+        }
+        </script>
+        
+</body>
+</html>
