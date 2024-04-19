@@ -1,56 +1,28 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Image Editor</title>
-    <style>
-        body { margin: 0; }
-        canvas { width: 100%; height: auto; }
-    </style>
+    <link rel="stylesheet" href="styles.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pixi.js/6.5.2/browser/pixi.min.js"></script>
 </head>
 <body>
-    <h1>Edit Image</h1>
     <div id="canvas-container"></div>
-
-    <script>
-        // Create a Pixi Application
-        let app = new PIXI.Application({
-            width: window.innerWidth,  // Full width of the window
-            height: window.innerHeight, // Full height of the window
-            backgroundColor: 0x1099bb, // Blue background color
-            resolution: window.devicePixelRatio || 1,
-            autoDensity: true
-        });
-
-        // Append the canvas that Pixi automatically created for you to the HTML document
-        document.getElementById('canvas-container').appendChild(app.view);
-
-        const imageUrl = new URLSearchParams(window.location.search).get('img');
-
-        if (imageUrl) {
-            // Use Pixi's loader to load the image
-            PIXI.Loader.shared.add(decodeURIComponent(imageUrl)).load(setup);
-
-            function setup(loader, resources) {
-                const imageSprite = new PIXI.Sprite(resources[decodeURIComponent(imageUrl)].texture);
-
-                // Scale the sprite
-                let scale = Math.min(app.screen.width / imageSprite.width, app.screen.height / imageSprite.height);
-                imageSprite.scale.set(scale);
-
-                // Center the sprite
-                imageSprite.anchor.set(0.5);
-                imageSprite.x = app.screen.width / 2;
-                imageSprite.y = app.screen.height / 2;
-
-                // Add the image to the stage
-                app.stage.addChild(imageSprite);
-            }
-        } else {
-            console.error("No image URL provided.");
-        }
-    </script>
+    <div id="toolbar">
+        <button id="zoomIn" class="button">Zoom In</button>
+        <button id="zoomOut" class="button">Zoom Out</button>
+        <button id="panTool" class="button">Pan Tool</button>
+        <button id="rectTool" class="button">Rectangle Tool</button>
+        <button id="selectTool" class="button">Select Tool</button>
+        <button id="deleteSelected" class="button">Delete Selected</button>
+        <select id="categorySelector" class="button">
+            <option value="door">Door</option>
+            <option value="double_door">Double Door</option>
+        </select>
+        <button id="exportSelected" class="button">Export Selected</button>
+    </div>
+    <script src="editFunctions.js"></script>
 </body>
 </html>

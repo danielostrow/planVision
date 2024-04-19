@@ -9,11 +9,12 @@
     <h1>Image Gallery</h1>
     <div>
 {% for image in images %}
-    <img src="{{ image }}" alt="Uploaded Image"
-         style="width:200px; cursor: pointer;" 
-         onclick="openEditor('{{ image }}')">
+    {% if image.endswith('.jpg') %}
+        <img src="{{ image }}" alt="Uploaded Image"
+             style="width:200px; cursor: pointer;" 
+             onclick="openEditor('{{ image }}')">
+    {% endif %}
 {% endfor %}
-
     </div>
 
     <script>
@@ -22,7 +23,8 @@
             var editorUrl = '/editor?img=' + encodeURIComponent(imageUrl);
             window.open(editorUrl, 'Image Editor', 'width=850,height=650');
         }
-        </script>
+    </script>
         
 </body>
 </html>
+
