@@ -7,40 +7,43 @@
     <title>Image Editor</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pixi.js/6.5.2/browser/pixi.min.js"></script>
 </head>
-<style>body,
-html {
-    height: 100%;
-    margin: 0;
-}
+<style>
+    body,
+    html {
+        height: 100%;
+        margin: 0;
+    }
 
-#canvas-container {
-    width: 100%;
-    height: 100vh;
-    overflow: hidden;
-}
+    #canvas-container {
+        width: 100%;
+        height: 100vh;
+        overflow: hidden;
+    }
 
-canvas {
-    display: block;
-}
+    canvas {
+        display: block;
+    }
 
-#toolbar {
-    background: #f0f0f0;
-    padding: 10px;
-    position: fixed;
-    bottom: 0;
-    width: 100%;
-    box-sizing: border-box;
-    display: flex;
-    justify-content: center;
-}
+    #toolbar {
+        background: #f0f0f0;
+        padding: 10px;
+        position: fixed;
+        bottom: 0;
+        width: 100%;
+        box-sizing: border-box;
+        display: flex;
+        justify-content: center;
+    }
 
-.button {
-    margin-right: 10px;
-}
+    .button {
+        margin-right: 10px;
+    }
 
-.active-tool {
-    background-color: #c8e6c9;
-}</style>
+    .active-tool {
+        background-color: #c8e6c9;
+    }
+</style>
+
 <body>
     <div id="canvas-container"></div>
     <div id="toolbar">
@@ -65,9 +68,9 @@ canvas {
             autoDensity: true,
             antialias: true
         });
-        
+
         document.getElementById('canvas-container').appendChild(app.view);
-        
+
         const container = new PIXI.Container();
         app.stage.addChild(container);
         container.interactive = true;
@@ -91,28 +94,28 @@ canvas {
         } else {
             console.error("No valid image URL provided.");
         }
-        
+
         let currentTool = '';
         let currentRect;
         let selectedRects = new Set();
-        
+
         function activateTool(tool) {
             deactivateAllTools();
             document.getElementById(tool).classList.add('active-tool');
             currentTool = tool;
         }
-        
+
         function deactivateAllTools() {
             document.querySelectorAll('.button').forEach(btn => {
                 btn.classList.remove('active-tool');
             });
         }
-        
+
         function enablePan() {
             container.interactive = true;
             container.on('pointerdown', onDragStart).on('pointermove', onDragMove).on('pointerup', endDrag).on('pointerupoutside', endDrag);
             let dragData = null;
-        
+
             function onDragStart(event) {
                 if (currentTool !== 'panTool') return;
                 dragData = event.data;
@@ -121,20 +124,20 @@ canvas {
                 this.dragPoint.x -= this.x;
                 this.dragPoint.y -= this.y;
             }
-        
+
             function onDragMove() {
                 if (!this.dragging) return;
                 let newPosition = dragData.getLocalPosition(this.parent);
                 this.x = newPosition.x - this.dragPoint.x;
                 this.y = newPosition.y - this.dragPoint.y;
             }
-        
+
             function endDrag() {
                 this.dragging = false;
                 dragData = null;
             }
         }
-        
+
         function setupRectangleDrawing() {
             let startX, startY;
             container.on('pointerdown', event => {
@@ -149,13 +152,13 @@ canvas {
                 currentRect.beginFill(color, 0.3);
                 currentRect.drawRect(startX, startY, 0, 0);
                 container.addChild(currentRect);
-        
+
                 // Add metadata to the rectangle
                 currentRect.data = {
                     category: category,
                     color: color
                 };
-        
+
                 // Add a label to the rectangle
                 const label = new PIXI.Text(category, { fontFamily: 'Arial', fontSize: 14, fill: color });
                 label.x = startX;
@@ -185,7 +188,7 @@ canvas {
                 currentRect = null;
             });
         }
-        
+
         function getCategoryColor(category) {
             switch (category) {
                 case 'door': return 0xFF0000; // Red
@@ -193,7 +196,7 @@ canvas {
                 default: return 0x00FF00; // Green
             }
         }
-        
+
         function setupSelection() {
             container.children.forEach(child => {
                 if (child instanceof PIXI.Graphics) {
@@ -207,7 +210,7 @@ canvas {
                 }
             });
         }
-        
+
         function toggleSelection(rect) {
             if (selectedRects.has(rect)) {
                 // Deselect: Reset to original color
@@ -219,7 +222,7 @@ canvas {
                 selectedRects.add(rect);
             }
         }
-        
+
         function deleteSelectedRectangles() {
             selectedRects.forEach(rect => {
                 container.removeChild(rect);
@@ -229,124 +232,113 @@ canvas {
             });
             selectedRects.clear();
         }
-        
+
         document.getElementById('zoomIn').addEventListener('click', () => {
             container.scale.set(container.scale.x * 1.1);
         });
-        
+
         document.getElementById('zoomOut').addEventListener('click', () => {
             container.scale.set(container.scale.x * 0.9);
         });
-        
+
         document.getElementById('panTool').addEventListener('click', () => {
             activateTool('panTool');
             enablePan();
         });
-        
+
         document.getElementById('rectTool').addEventListener('click', () => {
             activateTool('rectTool');
             setupRectangleDrawing();
         });
-        
+
         document.getElementById('selectTool').addEventListener('click', () => {
             activateTool('selectTool');
             setupSelection();
         });
-        
+
         document.getElementById('deleteSelected').addEventListener('click', deleteSelectedRectangles);
-        
+
         window.addEventListener('resize', () => {
             app.renderer.resize(window.innerWidth, window.innerHeight - document.getElementById('toolbar').offsetHeight);
         });
         document.getElementById('exportSelected').addEventListener('click', exportAllRectangles);
-        
+
         function exportAllRectangles() {
-            console.log("Export function triggered");
-            const currentDate = new Date().toISOString();  // Ensure this is properly formatted
-            const dataToExport = [];
+            const currentDate = new Date().toISOString();
             let processedCount = 0;
-        
+
             const rectangleChildren = Array.from(container.children).filter(child => child instanceof PIXI.Graphics);
             const totalRectangles = rectangleChildren.length;
-            console.log(`Total rectangles to process: ${totalRectangles}`);
-        
+
+            // Store visibility states and hide all rectangles and their labels
+            const visibilityStates = rectangleChildren.map(child => {
+                const wasVisible = child.visible;
+                child.visible = false; // Hide the rectangle
+                if (child.label) {
+                    child.label.visible = false; // Hide the label if it exists
+                }
+                return wasVisible;
+            });
+
             rectangleChildren.forEach((child, index) => {
                 const bounds = child.getBounds();
-                console.log(`Processing rectangle ${index + 1} with bounds:`, bounds);
-        
                 if (bounds.width === 0 || bounds.height === 0) {
                     console.log("Skipped rectangle due to zero dimensions");
                     processedCount++;
                     checkAllProcessed();
                     return;
                 }
-        
+
                 let renderTexture = PIXI.RenderTexture.create({
                     width: bounds.width,
-                    height: bounds.height
+                    height: bounds.height,
+                    resolution: window.devicePixelRatio || 1
                 });
-        
                 let matrix = new PIXI.Matrix().translate(-bounds.x, -bounds.y);
-                app.renderer.render(container, renderTexture, false, matrix);
-        
-                // Verify if the rendering to the texture was successful
-                let pixels = app.renderer.plugins.extract.pixels(renderTexture);
-                if (pixels.length === 0) {
-                    console.log(`No pixels extracted for rectangle ${index + 1}. Possible rendering issue.`);
+                app.renderer.render(app.stage, renderTexture, false, matrix, null);
+
+                app.renderer.extract.canvas(renderTexture).toBlob(blob => {
+                    const formData = new FormData();
+                    formData.append('file', blob, `rectangle_${index + 1}.png`);
+                    formData.append('dateTime', currentDate);
+                    formData.append('category', child.data ? child.data.category : "undefined category");
+                    formData.append('originalImagePath', imageUrl);  // Pass the global imageUrl
+
+                    sendImageToServer(formData);
                     renderTexture.destroy(true);
                     processedCount++;
                     checkAllProcessed();
-                    return;
-                }
-        
-                app.renderer.extract.base64(renderTexture, 'image/png', (base64) => {
-                    if (!base64) {
-                        console.error("Failed to extract base64 data.");
-                    } else {
-                        console.log("Extracted base64 string for rectangle:", base64.substring(0, 30)); // Log first 30 characters to check output
-                        dataToExport.push({
-                            file: imageUrl || "No Image URL", // Fallback if imageUrl is undefined
-                            dateTime: currentDate,
-                            category: child.data ? child.data.category : "undefined category",
-                            imageBase64: base64
-                        });
-                    }
-                    renderTexture.destroy(true);
-                    processedCount++;
-                    checkAllProcessed();
-                });
+                }, 'image/png');
             });
-        
+
+            // Restore visibility states for all rectangles and their labels
+            rectangleChildren.forEach((child, idx) => {
+                child.visible = visibilityStates[idx]; // Restore the visibility of the rectangle
+                if (child.label) {
+                    child.label.visible = true; // Restore the visibility of the label
+                }
+            });
+
             function checkAllProcessed() {
-                console.log(`Processed count: ${processedCount}, Total rectangles: ${totalRectangles}`);
                 if (processedCount === totalRectangles) {
-                    console.log("Finished processing all rectangles. Data length:", dataToExport.length);
-                    if (dataToExport.length > 0) {
-                        sendDataToServer(dataToExport);
-                    } else {
-                        console.log("No valid data to send.");
-                    }
+                    console.log("Finished processing all rectangles.");
                 }
             }
-        
-            function sendDataToServer(data) {
-                console.log("Sending data to server with the following payload:", JSON.stringify(data));
-                fetch('/data/store', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(data)
-                })
-                    .then(response => response.json())
-                    .then(data => {
-                        console.log('Server response:', data);
-                    })
-                    .catch(error => {
-                        console.error('Failed to send data:', error);
-                    });
-            }
-        
-        }</script>
+        }
+
+        function sendImageToServer(formData) {
+            fetch('/data/store', {
+                method: 'POST',
+                body: formData
+            }).then(response => response.json())
+                .then(data => {
+                    console.log('Server response:', data);
+                }).catch(error => {
+                    console.error('Failed to send data:', error);
+                });
+        }
+
+    </script>
 </body>
+
 </html>
