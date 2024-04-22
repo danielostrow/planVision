@@ -1,6 +1,11 @@
 from flask import *
 from pdf2image import convert_from_bytes
+from threading import Lock
 import os
+import secrets
+import datetime
+import json
+
 
 app = Flask(__name__)
 
@@ -62,22 +67,57 @@ def editor():
 def get_image(image_id):
     return send_from_directory(app.config['UPLOAD_FOLDER'], image_id)
 
+lock = Lock()
+
 @app.route('/data/store', methods=['POST'])
 def store_data():
-    print("Received a POST request with the following data:")
-    data = request.get_json()
-    if not data:
-        print("No data received.")
-        return jsonify({'error': 'No data provided'}), 400
+    if 'file' not in request.files:
+        return jsonify({'error': 'No file part'}), 400
+
+    file = request.files['file']
+    if file.filename == '':
+        return jsonify({'error': 'No selected file'}), 400
+
+    dateTime = request.form.get('dateTime')
+    category = request.form.get('category', 'undefined_category').replace(' ', '_').replace('/', '_')
+    timestamp = datetime.datetime.fromisoformat(dateTime).strftime('%Y%m%d%H%M%S')
+    random_str = secrets.token_hex(3)
+
+    filename = f"{category}_{timestamp}_{random_str}.png"
+    file_path = os.path.join(app.config['DATA_FOLDER'], filename)
+    file.save(file_path)
+
+    new_data = {
+        'file_path': file_path,
+        'dateTime': dateTime,
+        'category': category,
+        'original_image_path': request.form.get('originalImagePath', 'unknown')
+    }
 
     data_path = os.path.join(app.config['DATA_FOLDER'], 'data.json')
-    print(f"Writing data to {data_path}")
-    with open(data_path, 'w') as f:
-        json.dump(data, f, indent=4)
+    with lock:
+        try:
+            if os.path.exists(data_path) and os.path.getsize(data_path) > 0:
+                with open(data_path, 'r+') as f:
+                    try:
+                        data = json.load(f)
+                    except json.JSONDecodeError:
+                        data = []  # If there's an error in decoding, start with an empty list
+                    data.append(new_data)
+                    f.seek(0)
+                    json.dump(data, f, indent=4)
+                    f.truncate()  # Truncate to remove any leftover data
+            else:
+                with open(data_path, 'w') as f:
+                    json.dump([new_data], f, indent=4)
+        except IOError as e:
+            print(f"IOError: {e}")
+            return jsonify({'error': 'File I/O error'}), 500
+        except Exception as e:
+            print(f"Exception: {e}")
+            return jsonify({'error': 'An error occurred'}), 500
 
-    print("Data saved successfully.")
-    return jsonify({'message': 'Data saved successfully'}), 200
-
+    return jsonify({'message': 'File and data stored successfully'}), 200
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True, threaded=True)
