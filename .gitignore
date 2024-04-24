@@ -1,0 +1,5 @@
+venv/
+convertedFile*
+door*
+double_door*
+data.json
