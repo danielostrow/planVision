@@ -1,3 +1,16 @@
+/*
+#####################################################
+#         _          __     ___     _               #
+#   _ __ | | __ _ _ _\ \   / (_)___(_) ___  _ __    #
+#   | '_ \| |/ _` | '_ \ \ / /| / __| |/ _ \| '_ \  #
+#   | |_) | | (_| | | | \ V / | \__ \ | (_) | | | | #
+#   | .__/|_|\__,_|_| |_|\_/  |_|___/_|\___/|_| |_| #
+#   |_|                                             #
+#                  Annotation Tool                  #
+#                Daniel Ostrow, 2024                #
+#####################################################
+*/
+
 let app = new PIXI.Application({
     width: window.innerWidth,
     height: window.innerHeight - document.getElementById('toolbar').offsetHeight,
